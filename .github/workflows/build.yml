@@ -1,0 +1,39 @@
+name: Build Swell Vocal - Lift
+on: [push, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure Windows
+        if: runner.os == 'Windows'
+        run: cmake -S . -B build -A x64
+      - name: Configure universal Mac
+        if: runner.os == 'macOS'
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release '-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64' -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
+      - run: cmake --build build --config Release --parallel 3
+      - run: ctest --test-dir build -C Release --output-on-failure
+      - name: Package macOS bundles with executable permissions
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p package
+          cd build/SwellVocalLift_artefacts/Release
+          ditto -c -k --keepParent VST3 ../../../package/Swell-Vocal-Lift-macOS-VST3.zip
+          ditto -c -k --keepParent AU ../../../package/Swell-Vocal-Lift-macOS-AU.zip
+          ditto -c -k --keepParent Standalone ../../../package/Swell-Vocal-Lift-macOS-Standalone.zip
+      - name: Package Windows binaries
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path package -Force
+          Compress-Archive -Path 'build/SwellVocalLift_artefacts/Release/VST3/*.vst3', 'build/SwellVocalLift_artefacts/Release/Standalone/*.exe' -DestinationPath 'package/Swell-Vocal-Lift-Windows.zip'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Swell-Vocal-Lift-${{ runner.os }}
+          path: package/*.zip
+          if-no-files-found: error

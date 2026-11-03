@@ -1,0 +1,24 @@
+Start testing: Nov 03 11:40 Paris, Madrid
+----------------------------------------------------------
+1/1 Testing: VocalLiftDSP
+1/1 Test: VocalLiftDSP
+Command: "C:/Users/EBOUA-02504/Desktop/Data/swell-vocal-lift/build/Release/VocalLiftDSPTest.exe"
+Directory: C:/Users/EBOUA-02504/Desktop/Data/swell-vocal-lift/build
+"VocalLiftDSP" start time: Nov 03 11:40 Paris, Madrid
+Output:
+----------------------------------------------------------
+44100 Hz: presence=1.40755, sibilant=0.987889, bass=0.829704
+48000 Hz: presence=1.39737, sibilant=0.981201, bass=0.829801
+96000 Hz: presence=1.31477, sibilant=0.940156, bass=0.830375
+192000 Hz: presence=1.25858, sibilant=0.916196, bass=0.830682
+384000 Hz: presence=1.22796, sibilant=0.902956, bass=0.830841
+PASS: zero unity, silence, finite output, stereo link, no crosstalk and spectral response.
+<end of output>
+Test time =   0.17 sec
+----------------------------------------------------------
+Test Passed.
+"VocalLiftDSP" end time: Nov 03 11:40 Paris, Madrid
+"VocalLiftDSP" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Nov 03 11:40 Paris, Madrid
