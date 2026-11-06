@@ -1,3 +1,4 @@
+#include "ResizableEditor.h"
 #include <juce_audio_utils/juce_audio_utils.h>
 #include <juce_dsp/juce_dsp.h>
 #include "BinaryData.h"
@@ -53,13 +54,15 @@ public:
  juce::AudioProcessorParameter* getBypassParameter() const override{return state.getParameter("bypass");}
  void processBlock(juce::AudioBuffer<float>& b,juce::MidiBuffer&) override{render(b,false);}
  void processBlockBypassed(juce::AudioBuffer<float>& b,juce::MidiBuffer&) override{render(b,true);}
- bool hasEditor()const override{return true;}juce::AudioProcessorEditor* createEditor()override{return new LiftEditor(*this);}
+ bool hasEditor()const override{return true;}juce::AudioProcessorEditor* createEditor()override{return new ResizableEditor(*this, new LiftEditor(*this));}
  int getNumPrograms()override{return 1;}int getCurrentProgram()override{return 0;}void setCurrentProgram(int)override{}const juce::String getProgramName(int)override{return "Default";}void changeProgramName(int,const juce::String&)override{}
  void getStateInformation(juce::MemoryBlock& out)override{auto xml=state.copyState().createXml();copyXmlToBinary(*xml,out);}
  void setStateInformation(const void* data,int size)override{auto xml=getXmlFromBinary(data,size);if(xml&&xml->hasTagName(state.state.getType()))state.replaceState(juce::ValueTree::fromXml(*xml));}
 };
 LiftEditor::LiftEditor(LiftProcessor& p):AudioProcessorEditor(p),proc(p){setSize(470,550);logo=juce::ImageCache::getFromMemory(BinaryData::swellmark_png,BinaryData::swellmark_pngSize);knob.setSliderStyle(juce::Slider::RotaryVerticalDrag);knob.setTextBoxStyle(juce::Slider::NoTextBox,false,0,0);knob.setRotaryParameters(juce::MathConstants<float>::pi*1.25f,juce::MathConstants<float>::pi*2.75f,true);knob.setDoubleClickReturnValue(true,0);knob.setLookAndFeel(&look);knob.setName("Lift intensity");addAndMakeVisible(knob);bypass.setClickingTogglesState(true);bypass.setColour(juce::TextButton::buttonColourId,juce::Colour(0xff25262b));bypass.setColour(juce::TextButton::buttonOnColourId,juce::Colour(0xffaebeff));addAndMakeVisible(bypass);ka=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(proc.state,"lift",knob);ba=std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(proc.state,"bypass",bypass);startTimerHz(20);}
-void LiftEditor::paint(juce::Graphics& g){g.fillAll(juce::Colour(0xff1b1c20));g.setColour(juce::Colour(0xff34353b));g.drawHorizontalLine(85,0,470);g.drawImageWithin(logo,30,28,32,29,juce::RectanglePlacement::centred);g.setColour(juce::Colour(0xffeeeef1));g.setFont(juce::FontOptions(25.f,juce::Font::bold));g.drawText("swell",74,20,130,32,juce::Justification::left);g.setFont(juce::FontOptions(10.f));g.drawText("AUDIO",75,51,120,15,juce::Justification::left);g.setFont(juce::FontOptions(38.f,juce::Font::bold));g.drawText("VOCAL - LIFT",0,105,470,65,juce::Justification::centred);
+void LiftEditor::paint(juce::Graphics& g){g.fillAll(juce::Colour(0xff1b1c20));
+ g.setColour(juce::Colour(0xffb6b7bf)); g.setFont(juce::FontOptions(12.f)); g.drawText("v" JucePlugin_VersionString "  /  by @sevyondatracks",getWidth()-248,getHeight()-22,224,18,juce::Justification::centredRight);
+g.setColour(juce::Colour(0xff34353b));g.drawHorizontalLine(85,0,470);g.drawImageWithin(logo,30,28,32,29,juce::RectanglePlacement::centred);g.setColour(juce::Colour(0xffeeeef1));g.setFont(juce::FontOptions(25.f,juce::Font::bold));g.drawText("swell",74,20,130,32,juce::Justification::left);g.setFont(juce::FontOptions(10.f));g.drawText("AUDIO",75,51,120,15,juce::Justification::left);g.setFont(juce::FontOptions(38.f,juce::Font::bold));g.drawText("VOCAL - LIFT",0,105,470,65,juce::Justification::centred);
  g.setColour(juce::Colour(0xff9a9ba3));g.setFont(juce::FontOptions(13.f));g.drawText("Une voix qui prend sa place.",0,167,470,20,juce::Justification::centred);
  // Values are painted above the knob by a child-independent central label area below.
  g.setColour(juce::Colour(0xffaebeff));g.setFont(juce::FontOptions(23.f,juce::Font::bold));g.drawText(juce::String((int)knob.getValue())+" %",0,450,470,30,juce::Justification::centred);g.setFont(juce::FontOptions(13.f));g.setColour(juce::Colour(0xff9a9ba3));g.drawText(bypass.getToggleState()?"Bypass":knob.getValue()==0?"Clean":knob.getValue()<34?"Presence":knob.getValue()<70?"Clarity":"Glow",0,490,470,25,juce::Justification::centred);}

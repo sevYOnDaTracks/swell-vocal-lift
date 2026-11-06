@@ -58,7 +58,7 @@ public:
         // The small floor prevents quiet noise from triggering the detector.
         const float ratio = highEnvelope / (fullEnvelope + 0.003f);
         const float sibilance = std::clamp((ratio - 0.28f) / 0.18f, 0.0f, 1.0f);
-        const float highGain = (1.0f + 1.25f * lift) * (1.0f - 0.70f * lift * sibilance);
+        const float highGain = (1.0f + 2.1f * lift) * (1.0f - 0.79f * lift * sibilance);
         const float compensation = 1.0f / (1.0f + 0.12f * lift);
         for (int channel = 0; channel < channels; ++channel)
         {
@@ -66,8 +66,8 @@ public:
             // A small parallel harmonic contribution is confined to the presence band.
             const float excitation = 0.08f * lift * lift
                 * (std::tanh(presence[channel] * 3.0f) / 3.0f - presence[channel]);
-            const float shaped = input - 0.10f * lift * low[channel]
-                + 0.75f * lift * presence[channel] + (highGain - 1.0f) * air[channel]
+            const float shaped = input - 0.22f * lift * low[channel]
+                + 1.65f * lift * (1.0f - 0.75f * sibilance) * presence[channel] + (highGain - 1.0f) * air[channel]
                 + excitation;
             samples[channel] = lift == 0.0f ? input : shaped * compensation;
         }
