@@ -1,4 +1,5 @@
 #include "ResizableEditor.h"
+#include "Licence/SwellLicence.h"
 #include <juce_audio_utils/juce_audio_utils.h>
 #include <juce_dsp/juce_dsp.h>
 #include "BinaryData.h"
@@ -27,6 +28,10 @@ public:
 };
 class LiftProcessor : public juce::AudioProcessor {
 public:
+    // Licence Swell : partagée par toutes les instances ; silence tant que le plugin n'est pas activé.
+    juce::SharedResourcePointer<swell::Licence> licence;
+
+public:
  juce::AudioProcessorValueTreeState state;
  juce::SmoothedValue<float> amount,enabled;
  LiftDSP dsp;
@@ -52,9 +57,9 @@ public:
   oversampling->processSamplesDown(block);mixer.mixWetSamples(block);
  }
  juce::AudioProcessorParameter* getBypassParameter() const override{return state.getParameter("bypass");}
- void processBlock(juce::AudioBuffer<float>& b,juce::MidiBuffer&) override{render(b,false);}
+ void processBlock(juce::AudioBuffer<float>& b,juce::MidiBuffer&) override{ if (! licence->isUnlocked()) { b.clear(); return; } render(b,false);}
  void processBlockBypassed(juce::AudioBuffer<float>& b,juce::MidiBuffer&) override{render(b,true);}
- bool hasEditor()const override{return true;}juce::AudioProcessorEditor* createEditor()override{return new ResizableEditor(*this, new LiftEditor(*this));}
+ bool hasEditor()const override{return true;}juce::AudioProcessorEditor* createEditor()override{return swell::LicenceGuard::attach (new ResizableEditor(*this, new LiftEditor(*this)));}
  int getNumPrograms()override{return 1;}int getCurrentProgram()override{return 0;}void setCurrentProgram(int)override{}const juce::String getProgramName(int)override{return "Default";}void changeProgramName(int,const juce::String&)override{}
  void getStateInformation(juce::MemoryBlock& out)override{auto xml=state.copyState().createXml();copyXmlToBinary(*xml,out);}
  void setStateInformation(const void* data,int size)override{auto xml=getXmlFromBinary(data,size);if(xml&&xml->hasTagName(state.state.getType()))state.replaceState(juce::ValueTree::fromXml(*xml));}
